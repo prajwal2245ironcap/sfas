@@ -2,16 +2,25 @@
   "dependencies": {
     "axios": "^1.13.2",
     "i18next": "^25.7.2",
+<<<<<<< HEAD
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+=======
+>>>>>>> 4984f0337430d90a3c4fed50eea3f0af46770870
     "react-i18next": "^16.5.0",
     "recharts": "^3.5.1"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.22",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "vite": "^7.2.7"
+=======
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+>>>>>>> 4984f0337430d90a3c4fed50eea3f0af46770870
   }
 }
