@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import {
   BarChart,
   Bar,
@@ -9,15 +8,17 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import { getAnalytics } from "../api"; // ✅ IMPORTANT
+
 export default function Charts() {
   const [data, setData] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("http://127.0.0.1:5000/api/analytics")
+    getAnalytics()
       .then((res) => {
         // Convert backend data → chart format
-        const chartData = res.data.map((item) => ({
+        const chartData = res.map((item) => ({
           name: item.crop,
           value: item.count,
         }));
@@ -25,8 +26,17 @@ export default function Charts() {
       })
       .catch((err) => {
         console.error("Analytics error:", err);
+        setError("Failed to load analytics");
       });
   }, []);
+
+  if (error) {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   if (data.length === 0) {
     return (
@@ -53,6 +63,4 @@ export default function Charts() {
     </div>
   );
 }
-
-
 
