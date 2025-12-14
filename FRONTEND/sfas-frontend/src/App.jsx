@@ -10,6 +10,8 @@ import WeatherPage from "./pages/WeatherPage";
 import { getAnalytics } from "./api";
 
 export default function App() {
+  
+console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
 
   // 🔹 Backend API call
   useEffect(() => {
