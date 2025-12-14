@@ -1,28 +1,24 @@
 import axios from "axios";
 
-const BASE_URL = "http://127.0.0.1:5000";
+const API = import.meta.env.VITE_BACKEND_URL;
 
-/* ================= ADVISORY ================= */
-export const getAdvisory = async (form) => {
+export const getAnalytics = async () => {
+  const res = await fetch(`${API}/api/analytics`);
+  return res.json();
+};
+
+export const getWeather = async () => {
+  const res = await fetch(`${API}/api/weather`);
+  return res.json();
+};
+
+export const getAdvisory = async (payload) => {
   const res = await axios.post(
-    `${BASE_URL}/api/advisory`,
-    form,
+    `${API}/api/advisory`,
+    payload,
     {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     }
   );
   return res.data;
-};
-
-/* ================= WEATHER ================= */
-export const getWeather = async () => {
-  // Temporary mock data
-  return Promise.resolve({
-    temperature: 28,
-    humidity: 65,
-    rainfall: "Moderate",
-    condition: "Cloudy",
-  });
 };
