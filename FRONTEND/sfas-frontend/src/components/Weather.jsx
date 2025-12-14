@@ -1,14 +1,28 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { getWeather } from "../api"; // ✅ IMPORTANT
 
 export default function Weather() {
   const [weather, setWeather] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("http://127.0.0.1:5000/api/weather")
-      .then(res => setWeather(res.data));
+    getWeather()
+      .then((data) => {
+        setWeather(data);
+      })
+      .catch((err) => {
+        console.error("Weather error:", err);
+        setError("Failed to load weather data");
+      });
   }, []);
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   if (!weather) return null;
 
@@ -24,4 +38,5 @@ export default function Weather() {
     </div>
   );
 }
+
 
