@@ -49,25 +49,24 @@ def advisory():
     return jsonify(advisory_data)
 
 # ================== ANALYTICS ==================
-@app.route("/api/analytics", methods=["GET"])
+@app.route("/api/analytics")
 def analytics():
     pipeline = [
         {
             "$group": {
                 "_id": "$crop",
-                "count": {"$sum": 1}
+                "avgYield": { "$avg": "$ml_prediction.expected_yield" }
             }
         }
     ]
 
-    results = list(db.advisories.aggregate(pipeline))
+    data = list(db.advisories.aggregate(pipeline))
 
-    analytics_data = [
-        {"crop": item["_id"], "count": item["count"]}
-        for item in results
-    ]
+    return jsonify([
+        { "crop": d["_id"], "avgYield": round(d["avgYield"], 2) }
+        for d in data
+    ])
 
-    return jsonify(analytics_data)
 
 # ================== WEATHER ==================
 # ================== WEATHER ==================
