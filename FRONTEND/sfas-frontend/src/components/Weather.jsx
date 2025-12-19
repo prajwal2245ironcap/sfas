@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { getWeather } from "../api"; // ✅ IMPORTANT
+import { getWeather } from "../api";
 
-export default function Weather() {
+export default function Weather({ location }) {
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    getWeather()
+    if (!location) return;
+
+    getWeather(location)
       .then((data) => {
         setWeather(data);
       })
@@ -14,7 +16,7 @@ export default function Weather() {
         console.error("Weather error:", err);
         setError("Failed to load weather data");
       });
-  }, []);
+  }, [location]);
 
   if (error) {
     return (
@@ -24,12 +26,12 @@ export default function Weather() {
     );
   }
 
-  if (!weather) return null;
+  if (!weather) return <p>Loading weather...</p>;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
       <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200 mb-4">
-        Weather Overview
+        Weather Overview ({location})
       </h2>
 
       <p>🌡 Temperature: {weather.temp}°C</p>
@@ -38,5 +40,3 @@ export default function Weather() {
     </div>
   );
 }
-
-
