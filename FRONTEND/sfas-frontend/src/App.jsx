@@ -7,19 +7,21 @@ import Crops from "./pages/Crops";
 import Analytics from "./pages/Analytics";
 import WeatherPage from "./pages/WeatherPage";
 
-import { getAnalytics } from "./api";
+// ✅ FIXED IMPORT PATH
+import { getAnalytics } from "./services/api";
 
 export default function App() {
-  
-console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
 
-  // 🔹 Backend API call
+  // 🔍 Debug backend URL (remove later if you want)
+  console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
+
+  // 🔹 Backend API test call
   useEffect(() => {
     getAnalytics()
-      .then(data => {
+      .then((data) => {
         console.log("Analytics data from backend:", data);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Backend API error:", err);
       });
   }, []);
@@ -41,4 +43,3 @@ console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
     </BrowserRouter>
   );
 }
-
