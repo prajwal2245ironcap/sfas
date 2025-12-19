@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { getAnalytics } from "../api"; // ✅ IMPORTANT
+import { getAnalytics } from "../services/api"; // ✅ IMPORTANT
 
 export default function Charts() {
   const [data, setData] = useState([]);
