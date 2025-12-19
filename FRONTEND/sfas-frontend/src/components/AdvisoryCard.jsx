@@ -6,6 +6,11 @@ export default function AdvisoryCard({ result }) {
 
   if (!result) return null;
 
+  const confidence =
+    result.ml_prediction !== undefined
+      ? (result.ml_prediction * 100).toFixed(2)
+      : null;
+
   return (
     <div className="mt-6 bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl shadow-sm">
       
@@ -13,12 +18,10 @@ export default function AdvisoryCard({ result }) {
         Advisory Report
       </h2>
 
-      {/* Recommendation */}
       <p className="text-sm mb-2">
         <strong>Recommendation:</strong> {result.recommendation}
       </p>
 
-      {/* Benefits */}
       {result.benefits && (
         <div className="mt-3 text-sm space-y-1">
           <p><strong>Yield Increase:</strong> {result.benefits.yield}%</p>
@@ -27,7 +30,29 @@ export default function AdvisoryCard({ result }) {
         </div>
       )}
 
-      {/* Explain Button */}
+      {/* ML RESULT */}
+      {confidence && (
+        <div className="mt-4 p-4 bg-green-100 rounded-lg">
+          <h3 className="font-semibold text-green-800 mb-2">
+            🤖 ML Prediction
+          </h3>
+
+          <p>
+            <strong>Confidence Score:</strong>{" "}
+            <span className={
+              confidence > 80 ? "text-green-700" : "text-yellow-700"
+            }>
+              {confidence}%
+            </span>
+          </p>
+
+          <p>
+            <strong>Risk Level:</strong>{" "}
+            {confidence > 80 ? "Low" : "Moderate"}
+          </p>
+        </div>
+      )}
+
       <button
         onClick={() => setOpen(true)}
         className="text-sm text-green-600 hover:underline mt-4"
@@ -35,36 +60,11 @@ export default function AdvisoryCard({ result }) {
         Why this recommendation?
       </button>
 
-      {/* Explanation Modal */}
-  <ExplanationModal
-    open={open}
-    onClose={() => setOpen(false)}
-    explanation={result.explanation}
-  />
-
-  {result.ml_prediction && (
-    <div className="mt-4 p-4 bg-green-100 rounded-lg">
-      <h3 className="font-semibold text-green-800 mb-2">
-        🤖 ML Prediction
-      </h3>
-
-      <p>
-        <strong>Yield Score:</strong>{" "}
-        {result.ml_prediction.yield_score}
-      </p>
-
-      <p>
-        <strong>Risk Level:</strong>{" "}
-        {result.ml_prediction.risk_level}
-      </p>
-
-      <p>
-        <strong>Confidence:</strong>{" "}
-        {result.ml_prediction.confidence}
-      </p>
+      <ExplanationModal
+        open={open}
+        onClose={() => setOpen(false)}
+        explanation={result.explanation}
+      />
     </div>
-  )}
-
-</div>
   );
 }
