@@ -79,13 +79,22 @@ def analytics():
     return jsonify(analytics_data)
 
 # ================== WEATHER ==================
-@app.route("/api/weather", methods=["GET"])
-def weather():
+import requests
+
+@app.route("/api/weather/<location>")
+def weather(location):
+    API_KEY = "7a8ed48d80f3aa4e554e6ef1eb897353Y"
+
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={location},IN&appid={API_KEY}&units=metric"
+    res = requests.get(url).json()
+
     return jsonify({
-        "temp": 29,
-        "rainfall": "Moderate",
-        "humidity": 65
+        "temp": res["main"]["temp"],
+        "humidity": res["main"]["humidity"],
+        "rainfall": res.get("rain", {}).get("1h", 0),
+        "condition": res["weather"][0]["main"]
     })
+
 
 # ================== PDF REPORT ==================
 @app.route("/api/report", methods=["GET"])
