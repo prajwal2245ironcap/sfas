@@ -23,35 +23,39 @@ def home():
     return jsonify({"status": "Backend working"})
 
 # ================== ADVISORY ==================
-from ml_model import predict_yield
+from ml_model import predict_crop_ml
 
 @app.route("/api/advisory", methods=["POST"])
 def advisory():
-    data = request.get_json(force=True)
+    data = request.get_json()
 
-    crop = data.get("crop")
-    soil = data.get("soil")
-    season = data.get("season")
-    location = data.get("location")
+    crop, confidence = predict_crop_ml(
+        data["nitrogen"],
+        data["phosphorus"],
+        data["potassium"],
+        data["temperature"],
+        data["humidity"],
+        data["rainfall"],
+        data["ph"]
+    )
 
-    ml_yield = predict_yield(crop, soil, season, location)
-
-    advisory_data = {
+    response = {
         "crop": crop,
-        "soil": soil,
-        "season": season,
-        "location": location,
-        "recommendation": f"Grow {crop} with proper irrigation",
-        "ml_prediction": {
-            "expected_yield": ml_yield,
-            "unit": "quintal/acre"
+        "recommendation": f"Grow {crop}",
+        "ml_prediction": confidence,
+        "explanation": (
+            f"{crop} is recommended based on soil nutrients "
+            f"and weather conditions using ML"
+        ),
+        "benefits": {
+            "yield": round(confidence * 100, 2),
+            "cost": 30,
+            "loss": 15
         }
     }
 
-    db.advisories.insert_one(advisory_data)
-    advisory_data.pop("_id", None)
+    return jsonify(response)
 
-    return jsonify(advisory_data)
 
 # ================== ANALYTICS ==================
 # ================== ANALYTICS ==================
