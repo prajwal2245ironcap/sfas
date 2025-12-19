@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useFarmerMode } from "../context/useFarmerMode";
 
-
 import AdvisoryForm from "../components/AdvisoryForm";
 import AdvisoryCard from "../components/AdvisoryCard";
 import Charts from "../components/Charts";
@@ -19,7 +18,8 @@ import {
 
 export default function Dashboard() {
   const [result, setResult] = useState(null);
-  const { mode } = useFarmerMode(); // ✅ CORRECT
+  const [location, setLocation] = useState("");   // ✅ ADDED
+  const { mode } = useFarmerMode();
 
   return (
     <main className="bg-gray-100 dark:bg-gray-900 min-h-screen py-8">
@@ -40,7 +40,7 @@ export default function Dashboard() {
         {/* ================= KPI CARDS ================= */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
             <TrendingUp className="text-green-600 mb-3" />
             <p className="text-xs uppercase tracking-wide text-gray-400">
               Yield Growth
@@ -50,7 +50,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
             <DollarSign className="text-green-600 mb-3" />
             <p className="text-xs uppercase tracking-wide text-gray-400">
               Cost Reduction
@@ -60,7 +60,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
             <CloudRain className="text-green-600 mb-3" />
             <p className="text-xs uppercase tracking-wide text-gray-400">
               Weather Accuracy
@@ -70,7 +70,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm hover:shadow-md transition">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
             <Tractor className="text-green-600 mb-3" />
             <p className="text-xs uppercase tracking-wide text-gray-400">
               Crop Health
@@ -87,23 +87,28 @@ export default function Dashboard() {
 
           {/* ANALYTICS — ADVANCED FARMER ONLY */}
           {mode === "advanced" && (
-    <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-7 rounded-2xl shadow-sm">
-      <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200 mb-4">
-        Analytics Overview
-      </h2>
+            <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-7 rounded-2xl shadow-sm">
+              <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200 mb-4">
+                Analytics Overview
+              </h2>
 
-      <Charts />   {/* 👈 THIS IS THE LINE */}
-      
-      <div className="mt-6">
-        <Weather />
-      </div>
-    </div>
-  )}
+              <Charts />
+
+              <div className="mt-6">
+                <Weather location={location} />   {/* ✅ FIXED */}
+              </div>
+            </div>
+          )}
 
           {/* ADVISORY — ALL FARMERS */}
           <div className="bg-white dark:bg-gray-800 p-7 rounded-2xl shadow-sm space-y-6">
-            <AdvisoryForm setResult={setResult} />
+            <AdvisoryForm
+              setResult={setResult}
+              setLocation={setLocation}   {/* ✅ FIXED */}
+            />
+
             {result && <AdvisoryCard result={result} />}
+
             <PdfDownload />
           </div>
 
