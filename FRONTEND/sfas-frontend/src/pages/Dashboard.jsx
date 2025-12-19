@@ -102,10 +102,10 @@ export default function Dashboard() {
 
           {/* ADVISORY — ALL FARMERS */}
           <div className="bg-white dark:bg-gray-800 p-7 rounded-2xl shadow-sm space-y-6">
-            <AdvisoryForm
-              setResult={setResult}
-              setLocation={setLocation}   {/* ✅ FIXED */}
-            />
+           <AdvisoryForm
+  setResult={setResult}
+  setLocation={setLocation}
+/>
 
             {result && <AdvisoryCard result={result} />}
 
