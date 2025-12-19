@@ -81,14 +81,14 @@ import os
 @app.route("/api/weather/<location>")
 def weather(location):
     try:
-        API_KEY = os.getenv("OPENWEATHER_API_KEY")
+        api_key = os.getenv("OPENWEATHER_API_KEY")
 
-        if not API_KEY:
-            return jsonify({"error": "Weather API key not configured"}), 500
+        if not api_key:
+            return jsonify({"error": "API key missing"}), 500
 
         url = (
-            f"https://api.openweathermap.org/data/2.5/weather"
-            f"?q={location},IN&units=metric&appid={API_KEY}"
+            "https://api.openweathermap.org/data/2.5/weather"
+            f"?q={location},IN&units=metric&appid={api_key}"
         )
 
         res = requests.get(url, timeout=5).json()
@@ -96,20 +96,20 @@ def weather(location):
         if res.get("cod") != 200:
             return jsonify({"error": "Invalid location"}), 400
 
-        return jsonify({
+        data = {
             "temp": res["main"]["temp"],
             "humidity": res["main"]["humidity"],
             "rainfall": res.get("rain", {}).get("1h", 0),
             "condition": res["weather"][0]["description"],
             "wind": res["wind"]["speed"],
             "city": res["name"]
-        })
+        }
+
+        return jsonify(data)
 
     except Exception as e:
         print("Weather error:", e)
-        return jsonify({"error": "Failed to fetch weather"}), 500
-
-    })
+        return jsonify({"error": "Weather fetch failed"}), 500
 
 
 # ================== PDF REPORT ==================
