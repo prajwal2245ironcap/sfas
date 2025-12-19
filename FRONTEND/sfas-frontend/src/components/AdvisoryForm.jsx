@@ -1,29 +1,29 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getAdvisory } from "../services/api";
-import { Wheat, Mountain, Calendar } from "lucide-react";
+import { Wheat, Mountain, Calendar, MapPin } from "lucide-react";
 
-export default function AdvisoryForm({ setResult }) {
+export default function AdvisoryForm({ setResult, setLocation }) {
   const { t } = useTranslation();
 
   const [form, setForm] = useState({
-  crop: "",
-  soil: "",
-  season: "Kharif",
-  location: ""   // 👈 ADD THIS
-});
+    crop: "",
+    soil: "",
+    season: "Kharif",
+    location: ""
+  });
 
+  const submitHandler = async (e) => {
+    e.preventDefault();
 
- const submitHandler = async (e) => {
-  e.preventDefault();
-  console.log("Submitting form:", form);
+    console.log("Submitting form:", form);
 
-  const data = await getAdvisory(form);
-  console.log("API response:", data);
+    const data = await getAdvisory(form);
+    console.log("API response:", data);
 
-  setResult(data);
-};
-
+    setResult(data);
+    setLocation(form.location);   // ✅ SEND LOCATION UP
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
@@ -45,6 +45,7 @@ export default function AdvisoryForm({ setResult }) {
                        text-gray-800 dark:text-gray-100
                        placeholder-gray-400"
             placeholder={t("crop")}
+            value={form.crop}
             onChange={(e) =>
               setForm({ ...form, crop: e.target.value })
             }
@@ -64,6 +65,7 @@ export default function AdvisoryForm({ setResult }) {
                        text-gray-800 dark:text-gray-100
                        placeholder-gray-400"
             placeholder={t("soil")}
+            value={form.soil}
             onChange={(e) =>
               setForm({ ...form, soil: e.target.value })
             }
@@ -85,47 +87,42 @@ export default function AdvisoryForm({ setResult }) {
               setForm({ ...form, season: e.target.value })
             }
           >
-            <option>Kharif</option>
-            <option>Rabi</option>
-            <option>Zaid</option>
+            <option value="Kharif">Kharif</option>
+            <option value="Rabi">Rabi</option>
+            <option value="Zaid">Zaid</option>
           </select>
         </div>
 
-{/* Location */}
-<div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700
-                border border-gray-200 dark:border-gray-600
-                rounded-xl px-4 py-3
-                focus-within:ring-1 focus-within:ring-green-500">
-  <select
-    className="flex-1 bg-transparent outline-none
-               text-gray-800 dark:text-gray-100"
-    value={form.location}
-    onChange={(e) =>
-      setForm({ ...form, location: e.target.value })
-    }
-    required
-  >
-    <option value="">Select Location</option>
-    <option value="Karnataka">Karnataka</option>
-    <option value="Punjab">Punjab</option>
-  </select>
-</div>
-
-
+        {/* Location */}
+        <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700
+                        border border-gray-200 dark:border-gray-600
+                        rounded-xl px-4 py-3
+                        focus-within:ring-1 focus-within:ring-green-500">
+          <MapPin size={18} className="text-blue-600 dark:text-blue-400" />
+          <select
+            className="flex-1 bg-transparent outline-none
+                       text-gray-800 dark:text-gray-100"
+            value={form.location}
+            onChange={(e) =>
+              setForm({ ...form, location: e.target.value })
+            }
+            required
+          >
+            <option value="">Select Location</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Punjab">Punjab</option>
+          </select>
+        </div>
 
         {/* Submit */}
-       <button
-  type="submit"
-  className="w-full bg-green-600 hover:bg-green-700
-             text-white py-3 rounded-xl
-             font-semibold tracking-wide transition"
->
-  Get Advisory
-
-
-
-
-</button>
+        <button
+          type="submit"
+          className="w-full bg-green-600 hover:bg-green-700
+                     text-white py-3 rounded-xl
+                     font-semibold tracking-wide transition"
+        >
+          Get Advisory
+        </button>
 
       </form>
     </div>
