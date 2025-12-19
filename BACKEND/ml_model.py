@@ -1,32 +1,18 @@
 def predict_yield(crop, soil, season, location):
-    score = 50  # base
+    base_yield = {
+        "Wheat": 45,
+        "Ragi": 38,
+        "Rice": 52,
+        "Maize": 48
+    }.get(crop, 35)
 
-    # crop weight
-    if crop == "Ragi":
-        score += 20
-    elif crop == "Wheat":
-        score += 15
-    elif crop == "Rice":
-        score += 10
+    soil_factor = {
+        "Loamy": 1.2,
+        "Black": 1.15,
+        "Sandy": 0.9
+    }.get(soil, 1.0)
 
-    # soil weight
-    if soil == "Loamy":
-        score += 15
-    elif soil == "Clay":
-        score += 10
-    elif soil == "Sandy":
-        score += 5
+    season_factor = 1.1 if season == "Kharif" else 1.0
+    location_factor = 1.15 if location == "Punjab" else 1.05
 
-    # season weight
-    if season == "Rabi":
-        score += 10
-    elif season == "Kharif":
-        score += 5
-
-    # location boost
-    if location == "Karnataka" and crop == "Ragi":
-        score += 20
-    if location == "Punjab" and crop == "Wheat":
-        score += 20
-
-    return min(score, 100)
+    return round(base_yield * soil_factor * season_factor * location_factor, 2)
