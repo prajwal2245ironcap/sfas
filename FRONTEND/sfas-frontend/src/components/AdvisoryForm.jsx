@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAdvisory } from "../services/api";
 
-export default function AdvisoryForm({ setResult, setLocation }) {
+export default function AdvisoryForm({ setResult, setLocation, weatherData }) {
   const [form, setForm] = useState({
-    nitrogen: "",
-    phosphorus: "",
-    potassium: "",
+    nitrogen: 0,
+    phosphorus: 0,
+    potassium: 0,
     temperature: "",
     humidity: "",
     rainfall: "",
@@ -16,35 +16,24 @@ export default function AdvisoryForm({ setResult, setLocation }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // 🔹 Sample input for demo
-  const fillSampleData = () => {
-    setForm({
-      nitrogen: 90,
-      phosphorus: 42,
-      potassium: 43,
-      temperature: 28,
-      humidity: 80,
-      rainfall: 200,
-      ph: 6.5,
-      location: "Karnataka",
-    });
-    setError("");
-  };
+  // 🔹 Auto-fill from weather
+  useEffect(() => {
+    if (weatherData) {
+      setForm((f) => ({
+        ...f,
+        temperature: weatherData.temp ?? f.temperature,
+        humidity: weatherData.humidity ?? f.humidity,
+        rainfall: weatherData.rainfall ?? f.rainfall,
+      }));
+    }
+  }, [weatherData]);
 
   const submitHandler = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Validation
-    const values = Object.values(form).slice(0, 7);
-    if (values.some(v => v === "" || isNaN(v))) {
-      setError("⚠️ Please enter valid values for all fields");
-      return;
-    }
-
     try {
       setLoading(true);
-
       const data = await getAdvisory({
         nitrogen: Number(form.nitrogen),
         phosphorus: Number(form.phosphorus),
@@ -57,8 +46,8 @@ export default function AdvisoryForm({ setResult, setLocation }) {
 
       setResult(data);
       setLocation(form.location);
-    } catch (err) {
-      setError("❌ Failed to get ML advisory");
+    } catch {
+      setError("Failed to get ML advisory");
     } finally {
       setLoading(false);
     }
@@ -70,94 +59,85 @@ export default function AdvisoryForm({ setResult, setLocation }) {
         🌱 ML Crop Advisory Input
       </h2>
 
-      <form onSubmit={submitHandler} className="grid grid-cols-2 gap-3">
+      <form onSubmit={submitHandler} className="grid grid-cols-2 gap-4">
 
-        <input
-          type="number"
-          placeholder="Nitrogen (N)"
-          title="Nitrogen content in soil (kg/ha)"
-          value={form.nitrogen}
-          onChange={e => setForm({ ...form, nitrogen: e.target.value })}
-        />
+        {/* SLIDERS */}
+        {[
+          ["Nitrogen (N)", "nitrogen", 140],
+          ["Phosphorus (P)", "phosphorus", 145],
+          ["Potassium (K)", "potassium", 205],
+        ].map(([label, key, max]) => (
+          <div key={key} className="col-span-2">
+            <label className="text-sm text-gray-600">
+              {label}: <b>{form[key]}</b>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max={max}
+              value={form[key]}
+              onChange={(e) =>
+                setForm({ ...form, [key]: e.target.value })
+              }
+              className="w-full"
+            />
+          </div>
+        ))}
 
-        <input
-          type="number"
-          placeholder="Phosphorus (P)"
-          title="Phosphorus content in soil (kg/ha)"
-          value={form.phosphorus}
-          onChange={e => setForm({ ...form, phosphorus: e.target.value })}
-        />
-
-        <input
-          type="number"
-          placeholder="Potassium (K)"
-          title="Potassium content in soil (kg/ha)"
-          value={form.potassium}
-          onChange={e => setForm({ ...form, potassium: e.target.value })}
-        />
-
+        {/* WEATHER-AWARE FIELDS */}
         <input
           type="number"
           placeholder="Temperature (°C)"
-          title="Average temperature in Celsius"
           value={form.temperature}
-          onChange={e => setForm({ ...form, temperature: e.target.value })}
+          readOnly={!!weatherData}
+          className={weatherData ? "bg-gray-100" : ""}
+          onChange={(e) =>
+            setForm({ ...form, temperature: e.target.value })
+          }
         />
 
         <input
           type="number"
           placeholder="Humidity (%)"
-          title="Relative humidity percentage"
           value={form.humidity}
-          onChange={e => setForm({ ...form, humidity: e.target.value })}
+          readOnly={!!weatherData}
+          className={weatherData ? "bg-gray-100" : ""}
+          onChange={(e) =>
+            setForm({ ...form, humidity: e.target.value })
+          }
         />
 
         <input
           type="number"
           placeholder="Rainfall (mm)"
-          title="Annual rainfall in millimeters"
           value={form.rainfall}
-          onChange={e => setForm({ ...form, rainfall: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, rainfall: e.target.value })
+          }
         />
 
         <input
           type="number"
           step="0.1"
           placeholder="Soil pH"
-          title="Soil acidity/alkalinity (0–14)"
           value={form.ph}
-          onChange={e => setForm({ ...form, ph: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, ph: e.target.value })
+          }
         />
 
-        {/* Sample Input Button */}
-        <button
-          type="button"
-          onClick={fillSampleData}
-          className="col-span-2 bg-blue-100 text-blue-700 py-2 rounded-lg hover:bg-blue-200"
-        >
-          📊 Use Sample Input (Demo)
-        </button>
-
-        {/* Error Message */}
         {error && (
-          <p className="col-span-2 text-sm text-red-600">
-            {error}
-          </p>
+          <p className="col-span-2 text-red-600 text-sm">{error}</p>
         )}
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className={`col-span-2 py-2 rounded-lg text-white
-            ${loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}
-          `}
+          className="col-span-2 bg-green-600 text-white py-2 rounded-lg"
         >
           {loading ? "Predicting..." : "Get ML Advisory"}
         </button>
-
       </form>
     </div>
   );
 }
-
