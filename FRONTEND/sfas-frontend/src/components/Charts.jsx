@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,97 +11,160 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { getAnalytics } from "../services/api";
+
+import { getAnalytics, exportAnalyticsCSV } from "../services/api";
 
 export default function Charts() {
-  const [rawData, setRawData] = useState([]);
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedCrop, setSelectedCrop] = useState("All");
   const [view, setView] = useState("bar");
+  const [period, setPeriod] = useState("daily"); // ✅ NEW
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const chartRef = useRef(null);
+
+  /* ---------- FETCH ANALYTICS ---------- */
+  useEffect(() => {
+    setLoading(true);
+
+    getAnalytics(period)
+      .then((res) => {
+        setData(res);
+        setFilteredData(res);
+      })
+      .catch((err) => {
+        console.error("Analytics error:", err);
+        setError("Failed to load analytics data");
+      })
+      .finally(() => setLoading(false));
+  }, [period]);
+
+  /* ---------- FILTER BY CROP ---------- */
+  const crops = ["All", ...new Set(data.map((d) => d.crop))];
 
   useEffect(() => {
-    getAnalytics()
-      .then((res) => setRawData(res))
-      .finally(() => setLoading(false));
-  }, []);
+    if (selectedCrop === "All") {
+      setFilteredData(data);
+    } else {
+      setFilteredData(data.filter((d) => d.crop === selectedCrop));
+    }
+  }, [selectedCrop, data]);
 
-  if (loading) {
-    return (
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
-        Loading analytics...
-      </div>
-    );
-  }
+  if (loading)
+    return <p className="text-gray-500">Loading analytics...</p>;
 
-  /* ---------- FILTER ---------- */
-  const crops = ["All", ...new Set(rawData.map(d => d.crop))];
+  if (error)
+    return <p className="text-red-500">{error}</p>;
 
-  const filtered =
-    selectedCrop === "All"
-      ? rawData
-      : rawData.filter(d => d.crop === selectedCrop);
-
-  /* ---------- PIE DATA ---------- */
-  const pieData = Object.values(
-    filtered.reduce((acc, cur) => {
-      acc[cur.crop] = acc[cur.crop] || { crop: cur.crop, count: 0 };
-      acc[cur.crop].count += cur.count;
-      return acc;
-    }, {})
-  );
+  if (data.length === 0)
+    return <p className="text-gray-500">No analytics data</p>;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
       <h2 className="text-lg font-semibold mb-4">
-        📊 Date-wise Advisory Analytics
+        📊 Advisory Analytics
       </h2>
 
-      {/* CONTROLS */}
-      <div className="flex gap-3 mb-4 items-center">
+      {/* ---------- CONTROLS ---------- */}
+      <div className="flex flex-wrap gap-3 mb-4 items-center">
+
+        {/* Period Dropdown */}
+        <select
+          value={period}
+          onChange={(e) => setPeriod(e.target.value)}
+          className="px-3 py-1 border rounded text-sm"
+        >
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+
+        {/* Crop Filter */}
         <select
           value={selectedCrop}
           onChange={(e) => setSelectedCrop(e.target.value)}
-          className="border px-3 py-1 rounded"
+          className="px-3 py-1 border rounded text-sm"
         >
-          {crops.map(c => (
-            <option key={c}>{c}</option>
+          {crops.map((crop) => (
+            <option key={crop} value={crop}>
+              {crop}
+            </option>
           ))}
         </select>
 
-        <button onClick={() => setView("bar")}>Bar</button>
-        <button onClick={() => setView("pie")}>Pie</button>
+        {/* Chart Type */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setView("bar")}
+            className={`px-3 py-1 rounded text-sm ${
+              view === "bar"
+                ? "bg-green-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Bar
+          </button>
+
+          <button
+            onClick={() => setView("pie")}
+            className={`px-3 py-1 rounded text-sm ${
+              view === "pie"
+                ? "bg-green-600 text-white"
+                : "bg-gray-200"
+            }`}
+          >
+            Pie
+          </button>
+        </div>
+
+        {/* CSV Export */}
+        <button
+          onClick={exportAnalyticsCSV}
+          className="ml-auto px-3 py-1 bg-blue-600 text-white rounded text-sm"
+        >
+          📥 Export CSV
+        </button>
       </div>
 
-      <ResponsiveContainer width="100%" height={280}>
-        {view === "bar" ? (
-          <BarChart data={filtered}>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-            <XAxis dataKey="date" />
-            <YAxis allowDecimals={false} />
-            <Tooltip />
-            <Bar dataKey="count" fill="#16a34a" />
-          </BarChart>
-        ) : (
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="count"
-              nameKey="crop"
-              outerRadius={90}
-              label
-            >
-              {pieData.map((_, i) => (
-                <Cell
-                  key={i}
-                  fill={["#16a34a", "#22c55e", "#4ade80"][i % 3]}
-                />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        )}
-      </ResponsiveContainer>
+      {/* ---------- CHART ---------- */}
+      <div ref={chartRef}>
+        <ResponsiveContainer width="100%" height={280}>
+          {view === "bar" ? (
+            <BarChart data={filteredData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="crop" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="count" fill="#16a34a" />
+            </BarChart>
+          ) : (
+            <PieChart>
+              <Pie
+                data={filteredData}
+                dataKey="count"
+                nameKey="crop"
+                outerRadius={90}
+                label
+              >
+                {filteredData.map((_, i) => (
+                  <Cell
+                    key={i}
+                    fill={[
+                      "#16a34a",
+                      "#22c55e",
+                      "#4ade80",
+                      "#86efac",
+                    ][i % 4]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          )}
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
-
