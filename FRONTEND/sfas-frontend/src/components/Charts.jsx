@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,7 +11,6 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import html2canvas from "html2canvas";
 
 import { getAnalytics } from "../services/api";
 
@@ -23,12 +22,9 @@ export default function Charts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const chartRef = useRef(null);
-
   useEffect(() => {
     getAnalytics()
       .then((res) => {
-        // Expecting: { crop, count, date }
         setData(res);
         setFilteredData(res);
       })
@@ -49,18 +45,6 @@ export default function Charts() {
       setFilteredData(data.filter((d) => d.crop === selectedCrop));
     }
   }, [selectedCrop, data]);
-
-  /* ---------- EXPORT ---------- */
-  const exportChart = () => {
-    if (!chartRef.current) return;
-
-    html2canvas(chartRef.current).then((canvas) => {
-      const link = document.createElement("a");
-      link.download = "analytics.png";
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  };
 
   /* ---------- STATES ---------- */
 
@@ -139,83 +123,74 @@ export default function Charts() {
             Pie
           </button>
         </div>
-
-        {/* Export */}
-        <button
-          onClick={exportChart}
-          className="ml-auto px-3 py-1 bg-blue-600 text-white rounded text-sm"
-        >
-          📥 Export
-        </button>
       </div>
 
       {/* CHART */}
-      <div ref={chartRef}>
-        <ResponsiveContainer width="100%" height={280}>
-          {view === "bar" ? (
-            <BarChart
+      <ResponsiveContainer width="100%" height={280}>
+        {view === "bar" ? (
+          <BarChart
+            data={filteredData}
+            margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+
+            <XAxis
+              dataKey="crop"
+              tick={{ fill: "#6b7280", fontSize: 12 }}
+            />
+
+            <YAxis
+              allowDecimals={false}
+              tick={{ fill: "#6b7280", fontSize: 12 }}
+              label={{
+                value: "Number of Advisories",
+                angle: -90,
+                position: "insideLeft",
+                fill: "#6b7280",
+              }}
+            />
+
+            <Tooltip
+              cursor={{ fill: "rgba(22, 163, 74, 0.1)" }}
+              contentStyle={{
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: "#f0fdf4",
+              }}
+            />
+
+            <Bar
+              dataKey="count"
+              fill="#16a34a"
+              radius={[6, 6, 0, 0]}
+              animationDuration={800}
+            />
+          </BarChart>
+        ) : (
+          <PieChart>
+            <Pie
               data={filteredData}
-              margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
+              dataKey="count"
+              nameKey="crop"
+              outerRadius={90}
+              label
             >
-              <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-
-              <XAxis
-                dataKey="crop"
-                tick={{ fill: "#6b7280", fontSize: 12 }}
-              />
-
-              <YAxis
-                allowDecimals={false}
-                tick={{ fill: "#6b7280", fontSize: 12 }}
-                label={{
-                  value: "Number of Advisories",
-                  angle: -90,
-                  position: "insideLeft",
-                  fill: "#6b7280",
-                }}
-              />
-
-              <Tooltip
-                cursor={{ fill: "rgba(22, 163, 74, 0.1)" }}
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: "none",
-                  backgroundColor: "#f0fdf4",
-                }}
-              />
-
-              <Bar
-                dataKey="count"
-                fill="#16a34a"
-                radius={[6, 6, 0, 0]}
-                animationDuration={800}
-              />
-            </BarChart>
-          ) : (
-            <PieChart>
-              <Pie
-                data={filteredData}
-                dataKey="count"
-                nameKey="crop"
-                outerRadius={90}
-                label
-              >
-                {filteredData.map((_, index) => (
-                  <Cell
-                    key={index}
-                    fill={
-                      ["#16a34a", "#22c55e", "#4ade80", "#86efac"][
-                        index % 4
-                      ]
-                    }
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          )}
-        </ResponsiveContainer>
-      </div>
+              {filteredData.map((_, index) => (
+                <Cell
+                  key={index}
+                  fill={
+                    ["#16a34a", "#22c55e", "#4ade80", "#86efac"][
+                      index % 4
+                    ]
+                  }
+                />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        )}
+      </ResponsiveContainer>
     </div>
   );
 }
+
